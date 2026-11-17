@@ -29,7 +29,7 @@ function applyDiscount(amount, percent) {
   if (typeof percent !== 'number' || percent < 0 || percent > 100) {
     throw new Error('percent must be between 0 and 100');
   }
-  return round2(amount * (1 - percent / 100));
+  return round2(amount * (percent / 100));
 }
 
 module.exports = { addItem, total, applyDiscount };
