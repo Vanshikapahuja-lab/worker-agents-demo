@@ -1,0 +1,19 @@
+# Custom agent 1 - smoke test. Paste into AI > Worker Agents > + Create > YAML tab.
+# Replace <MODEL> with the exact name from the "Model name" dropdown (Harness LLM).
+agent:
+  uses: harnessAI@1.0.0
+  with:
+    prompt: |
+      List the pipelines in project <+inputs.projectName> in org <+inputs.orgId>
+      using Harness MCP. Summarize what each one does in pipeline_report.md.
+      When finished, output TASK_SUCCESS=true or false.
+    connector: account.harnessLlm
+    mcp:
+      - harness_hosted_mcp
+    allowed_domains: harness.io
+    max_turns: "30"
+    env:
+      MODEL: <MODEL>
+  inputs:
+    projectName: { type: string, required: true, default: Dockerdemo }
+    orgId: { type: string, required: true, default: InternsSandbox }

@@ -1,0 +1,61 @@
+# Pipeline: plan_safety_gate  (agent reviews a Terraform plan, a later step blocks on REJECT)
+# Paste into the YAML view, then:
+#   1. Set connectorRef / repoName to your GitHub connector and repo.
+#   2. The Agent step is easiest to add in the visual editor (Add Step > Agents > Agent),
+#      pick plan_safety_gate and "Always use stable". If you keep the YAML below, make
+#      sure agentName matches the agent's real id@version.
+#   3. Run once, expand the Agent step group, copy the exact output expression from the
+#      Output tab, and put it in the gate step (replace INNER_STEP_NAME).
+pipeline:
+  name: plan_safety_gate
+  identifier: plan_safety_gate
+  projectIdentifier: Dockerdemo
+  orgIdentifier: InternsSandbox
+  properties:
+    ci:
+      codebase:
+        connectorRef: github_agents_demo
+        repoName: worker-agents-demo
+        build: <+input>
+  variables:
+    - name: planPath
+      type: String
+      value: <+input>.default(plans/plan-safe.json)
+  stages:
+    - stage:
+        name: review_plan
+        identifier: review_plan
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Agent
+                  name: assess plan safety
+                  identifier: assess_plan_safety
+                  spec:
+                    agentName: plan_safety_gate@1.0.0
+                    agentSettings: ""
+              - step:
+                  type: Run
+                  name: gate on recommendation
+                  identifier: gate_on_recommendation
+                  spec:
+                    shell: Sh
+                    envVariables:
+                      RECOMMENDATION: <+steps.assess_plan_safety.steps.INNER_STEP_NAME.output.outputVariables.RECOMMENDATION>
+                      SUMMARY: <+steps.assess_plan_safety.steps.INNER_STEP_NAME.output.outputVariables.SUMMARY>
+                    command: |
+                      echo "Agent recommendation: $RECOMMENDATION"
+                      echo "Reason: $SUMMARY"
+                      if [ "$RECOMMENDATION" = "REJECT" ]; then
+                        echo "BLOCKED by plan safety agent"
+                        exit 1
+                      fi

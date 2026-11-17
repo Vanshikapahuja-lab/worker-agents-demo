@@ -1,0 +1,22 @@
+# Custom agent 2 - gating demo. Reviews a Terraform plan JSON and outputs a decision.
+# Replace <MODEL> with the exact name from the "Model name" dropdown (Harness LLM).
+agent:
+  uses: harnessAI@1.0.0
+  with:
+    prompt: |
+      Review the Terraform plan JSON file at <+inputs.planPath>.
+      Look for: destructive changes (deletes or replacements of databases or storage),
+      public network exposure (0.0.0.0/0 on admin ports), wildcard IAM permissions,
+      public storage, and loss of backups or snapshots.
+      Write a short assessment to risk_assessment.md.
+      Output these variables:
+        RECOMMENDATION = APPROVE, REVIEW or REJECT
+        RISK_LEVEL = LOW, MEDIUM or HIGH
+        SUMMARY = plain-language reason, 500 characters or fewer
+    connector: account.harnessLlm
+    allowed_domains: harness.io
+    max_turns: "30"
+    env:
+      MODEL: <MODEL>
+  inputs:
+    planPath: { type: string, required: true, default: plans/plan-safe.json }

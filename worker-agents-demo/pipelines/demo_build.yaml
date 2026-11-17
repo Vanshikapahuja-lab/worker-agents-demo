@@ -1,0 +1,43 @@
+# Pipeline: demo_build  (runs the unit tests; fails on the 'demo-broken' branch)
+# Paste into Pipelines > Create a Pipeline > YAML view, or create it in the visual editor.
+# Before saving: set connectorRef to YOUR GitHub connector id and repoName to your repo name.
+pipeline:
+  name: demo_build
+  identifier: demo_build
+  projectIdentifier: Dockerdemo
+  orgIdentifier: InternsSandbox
+  properties:
+    ci:
+      codebase:
+        connectorRef: github_agents_demo
+        repoName: worker-agents-demo
+        build: <+input>
+  stages:
+    - stage:
+        name: build_and_test
+        identifier: build_and_test
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: install
+                  identifier: install
+                  spec:
+                    shell: Sh
+                    command: npm ci
+              - step:
+                  type: Run
+                  name: unit tests
+                  identifier: unit_tests
+                  spec:
+                    shell: Sh
+                    command: npm test

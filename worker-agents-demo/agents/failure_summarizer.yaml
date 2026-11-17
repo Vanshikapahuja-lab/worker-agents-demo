@@ -1,0 +1,24 @@
+# Custom agent 3 - notification demo. Summarizes a failed pipeline execution.
+# Replace <MODEL> with the exact name from the "Model name" dropdown (Harness LLM).
+agent:
+  uses: harnessAI@1.0.0
+  with:
+    prompt: |
+      Use Harness MCP to fetch execution <+inputs.executionId> of pipeline
+      <+inputs.pipelineId> in project <+inputs.projectName>, org <+inputs.orgId>.
+      Find the failed stage and step and the root cause in the logs.
+      Output these variables:
+        SUMMARY = what failed and why, plain language, 500 characters or fewer
+        SEVERITY = LOW, MEDIUM or HIGH
+    connector: account.harnessLlm
+    mcp:
+      - harness_hosted_mcp
+    allowed_domains: harness.io
+    max_turns: "30"
+    env:
+      MODEL: <MODEL>
+  inputs:
+    executionId: { type: string, required: true }
+    pipelineId: { type: string, required: true, default: demo_build }
+    projectName: { type: string, required: true, default: Dockerdemo }
+    orgId: { type: string, required: true, default: InternsSandbox }
